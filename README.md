@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-# fp-scRNA
 Finn-Perkins lab reference pipeline for scRNA-seq data analysis
 =======
 # 10X Genomics scRNA-seq Pipeline
