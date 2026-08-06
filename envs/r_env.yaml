@@ -1,0 +1,29 @@
+name: scrna_r
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base=4.3
+  - r-optparse
+  - r-ggplot2
+  - r-dplyr
+  - r-tidyr
+  - r-readr
+  - r-matrix
+  - r-tibble
+  - bioconductor-deseq2
+  - bioconductor-singlecellexperiment
+  - bioconductor-zellkonverter      # reads .h5ad into R
+  - bioconductor-clusterprofiler    # GSEA (preranked, via GSEA()) on DESeq2-ranked gene lists
+  - bioconductor-org.hs.eg.db       # human gene ID / GO annotation for clusterProfiler
+  - r-msigdbr                       # GO:BP + KEGG + MSigDB Hallmark gene sets for GSEA
+  - r-soupx                         # preprocess_qc.R: ambient RNA correction
+  - bioconductor-scdblfinder        # preprocess_qc.R: per-sample doublet detection
+  - bioconductor-dropletutils       # preprocess_qc.R: 10x mtx read/write
+  - bioconductor-scran              # preprocess_qc.R: quick pre-clustering for SoupX
+  - bioconductor-scater             # scran dependency, QC helpers
+  - bioconductor-milor               # Stage 7f: kNN-neighborhood differential abundance
+  # Install from CRAN/GitHub in a post-install script if not in conda:
+  # - r-nmf
+  # monocle3 and liana are best installed via R's install.packages / pak

@@ -1,0 +1,5 @@
+sample	condition	sex	batch
+Donor1	control	M	1
+Donor2	control	M	1
+Donor3	treated	F	2
+Donor4	treated	F	2

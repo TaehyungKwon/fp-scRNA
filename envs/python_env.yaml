@@ -1,0 +1,55 @@
+name: scrna_py
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  # pandas>=3.0 defaults future.infer_string=True, which silently changes
+  # what dtype plain `pd.Index(list_of_str)`/`pd.DataFrame(index=...)`
+  # construction produces (legacy numpy `object` -> pandas' own StringDtype/
+  # StringArray). anndata 0.10.9's h5ad writer (pinned above) has no
+  # registered handler for StringArray and raises IORegistryError
+  # ("No method registered for writing ... StringArray ... into ...
+  # Group", on /raw/var's _index) the moment any DataFrame built that way
+  # gets written -- celltypist's annotate()/to_adata() (Stage 5b) builds
+  # adata.raw.var exactly this way, so this broke Stage 5's write_h5ad()
+  # with no code change on our side, purely from an unpinned pandas
+  # resolving to a newer version. Confirmed pandas<3 (infer_string defaults
+  # back to False) fixes it; anndata's own upstream fix for this dtype gap
+  # may land in a later release, at which point this pin can be revisited.
+  - pandas<3
+  - scipy
+  - matplotlib
+  # sccoda pulls in rpy2 (transitively, as one of its Bayesian-backend deps)
+  # even though nothing in this pipeline calls into R from Python -- rpy2's
+  # build links against a real R install and needs libtirpc's dev headers
+  # to do so. Minimal Linux hosts often ship only libtirpc's runtime .so
+  # (e.g. via libtirpc3), not the unversioned .so needed for linking, which
+  # fails pip's build of rpy2-rinterface with "cannot find -ltirpc". Conda's
+  # own libtirpc package provides both, self-contained inside this env --
+  # confirmed to fix the build without any system-level apt/yum install.
+  - libtirpc
+  - pip:
+      # Core analysis — no avoidable extras
+      - scanpy>=1.10
+      - anndata>=0.10,<0.11  # zellkonverter's basilisk env (R side) pins anndata=0.10.2;
+                              # anndata>=0.11 changed h5ad null-value encoding in a way that
+                              # env's older reader can't parse (breaks Stage 7's readH5AD)
+      - scikit-misc         # required by sc.pp.highly_variable_genes(flavor="seurat_v3")
+      # Optional but high-impact (all gracefully skipped if absent)
+      - scrublet          # doublet detection
+      - harmonypy>=2.0    # batch correction; Z_corr shape is (n_cells, n_pcs) as of 2.0's C++ backend
+      - celltypist        # automated annotation
+      - leidenalg         # Leiden clustering (required by scanpy)
+      - python-igraph
+      # Stage 6: compositional differential abundance. Heavier than the rest
+      # of this env (pulls in full TensorFlow + tensorflow-probability, its
+      # Bayesian backend) -- confirmed NOT to touch the anndata<0.11 pin above.
+      # pertpy's modern scCODA reimplementation was considered instead but
+      # transitively upgrades anndata past 0.11, breaking zellkonverter's
+      # readH5AD in Stage 7 -- avoid it here.
+      - sccoda
+      - tf-keras          # sccoda's tensorflow-probability import fails without this
